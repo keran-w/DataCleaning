@@ -8,7 +8,6 @@
 版本: 2022年4月29日
 """
 
-from base64 import encode
 import os
 import numpy as np
 import pandas as pd
