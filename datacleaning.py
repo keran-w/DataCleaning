@@ -21,12 +21,24 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# 读取文件
-def read_file(filename, columns=None, sheetid=0, sep=','):
+def read_file(filename: str, columns=None, sheetid=1, sep=','):
+    """ 读取多种文件类型的数据，对于列表数据，可以选择部分表头
 
-    # filename：读取文件名
-    # columns：选择被保留的列
-    # 返回：读取的DataFrame
+    Args:
+        filename (str): 读取文件的文件名
+        columns (list[str], optional): 选择表格数据希望保留的列. Defaults to None.
+        sheetid (int, optional): 对于xlsx及xls文件，选择需要读取的表格是该文件的第几个表格. Defaults to 1.
+        sep (str, optional): csv及txt文件的分割符. Defaults to ','.
+
+    Returns:
+        pd.DataFrame: 读取文件的表格数据，如果输入文件的文件名为csv, xlsx或xls
+    或  list[str]: 读取txt文件的字符串列表
+    
+    Examples:
+        >>> read_file('data.csv', ['col_1', 'col_2'])
+        >>> read_file('data.xlsx', ['col_1', 'col_2', 'col_3'], sheetid=2)
+        >>> read_file('sentences.txt', sep='\n')
+    """    
 
     filename = filename.replace('\\', '/')
     filetype = filename.split('.')[-1]
@@ -48,24 +60,55 @@ def read_file(filename, columns=None, sheetid=0, sep=','):
         data = data[columns]
     return data
 
-def save_file(data, destination, filetype='csv'):
+def save_file(data: pd.DataFrame, destination: str, filetype='csv') -> None:
+    """保存表到指定路径
+
+    Args:
+        data (pd.DataFrame): 需要被保存的表
+        destination (str): 保存的路径
+        filetype (str, optional): 保存文件的类型. Defaults to 'csv'.
+        
+    Examples:
+        >>> save_file(df1, 'df1.csv')
+        >>> save_file(df2, 'df2.csv', filetype='csv')
+    """    
     if filetype == 'csv':
         data.to_csv(destination, index=False, encoding='utf-8-sig')
 
-def merge(df1, df2, left_on=None, right_on=None, drop_duplaicates=True):
-    # 合并两个表
-    
-    # df1, df2: 将被合并的两个表，将df2合并到df1中
-    # left_on， right_on：自定义左右两边用于合并的列，默认为列名相同的
-    # 返回：合并后的DataFrame
-    
-    df_merge = df1.merge(df2, 'left') if left_on is None \
-        else df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
+def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: list[str], right_on: list[str], drop_duplaicates=True) -> pd.DataFrame:
+    """按照指定表头名称合并两个DataFrame
 
+    Args:
+        df1 (pd.DataFrame): 需要合并的第一个表
+        df2 (pd.DataFrame): 需要合并的第二个表
+        left_on (list[str]): 第一个表用来合并的表头名称.
+        right_on (list[str]): 第二个表用来合并的表头名称.
+        drop_duplaicates (bool, optional): 是否需要去掉重复的行. Defaults to True.
+
+    Returns:
+        pd.DataFrame: 按照要求合并后的表
+        
+    Examples:
+        >>> merge(df1, df2, left_on=['col_1', 'col_2'], right_on=['col_2', 'col_3'], drop_duplicates=False)
+    """    
+    df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
 
-def sift(data, col_name, tgt_list):
+def sift(data: pd.DataFrame, col_name: str, tgt_list: list[str]) -> pd.DataFrame:
+    """筛选一个列中指定信息的行
+
+    Args:
+        data (pd.DataFrame): 需要被筛选的表
+        col_name (str): 被选择列的表头名称
+        tgt_list (list[str]): 筛选指定信息的列表
+
+    Returns:
+        pd.DataFrame: 信息筛选后的表
+        
+    Examples:
+        >>> sift(df1, 'col_1', ['A', 'B'])
+    """    
     return data.query(f'{col_name} in @tgt_list')
 
 def drop_columns(data, cols):
