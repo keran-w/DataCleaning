@@ -49,8 +49,9 @@ def read_file(filename, columns=None, sheetid=0, sep=','):
     return data
 
 
-# 合并两个表
+
 def merge(df1, df2, left_on=None, right_on=None, drop_duplaicates=True):
+    # 合并两个表
     
     # df1, df2: 将被合并的两个表，将df2合并到df1中
     # left_on， right_on：自定义左右两边用于合并的列，默认为列名相同的
@@ -74,7 +75,8 @@ def cat2ohe(X, cat):
     encoder_df = pd.DataFrame(encoder.fit_transform(X[[cat]]).toarray(), columns=[f'{cat}_{i}' for i in sorted(X[cat].unique())]).astype('int')
     return encoder_df
 
-def cat2ohe_split(X, cat,):
+# 含有分隔符的分类数据变哑变量
+def cat2ohe_split(X, cat, delimiter='+'):
     encoder = OneHotEncoder(handle_unknown='ignore')
     encoder_df = pd.DataFrame(encoder.fit_transform(X[[cat]]).toarray(), columns=[f'{cat}_{i}' for i in sorted(X[cat].unique())]).astype('int')
     return encoder_df
@@ -127,13 +129,7 @@ def build_base_table(data, id, name, key, values, output_filename):
     return results
 
 def rank_time(data_, time_col, other_cols, ascending=True):
-    '''
-    Example:
-        >>> data = read_file('四川省交通厅公路局医院\门诊处方.csv', ['挂号序号', '医院挂号序号', '处方时间', '药品通用名称', '每次用量', '用量单位', '用法编码', '配药数量', '配药单位'])
-        >>> time_col = '处方时间'
-        >>> other_cols = ['挂号序号', '医院挂号序号', '药品通用名称', '配药数量']
-        >>> results = rank_time(data, time_col, other_cols)
-    '''
+
     data = data_.copy()
     data[time_col] = pd.to_datetime(data[time_col])
     all_cols = other_cols + [time_col]
@@ -143,12 +139,7 @@ def rank_time(data_, time_col, other_cols, ascending=True):
 
 
 def remove_negative_cost(data, time_col, cost_col, other_cols):
-    '''
-    Example:
-        >>> 门诊费用 = read_file('四川省交通厅公路局医院\门诊费用.csv', ['挂号序号', '医院挂号序号', '项目种类', '费用名称', '单价', '数量', '金额', '收费日期'])
-        >>> 门诊费用 = sift(门诊费用, '项目种类', ['中成药', '西药费']).drop('项目种类', 1)
-        >>> results = remove_negative_cost(门诊费用, '收费日期', '金额', ['挂号序号', '医院挂号序号', '费用名称'])  
-    '''
+
     del_list = []
     prev_idx = 0
     for idx, row in data[data.duplicated(other_cols, keep=False)].sort_values(other_cols + [time_col]).iterrows():
