@@ -2,13 +2,13 @@
 常用数据清洗方法整合模块
 
 这个模块将现实应用场景中的一些数据清洗方法做了整合，基于Numpy和Pandas开发，
-在只需要Python基础语法的情况下，依然可以完成一些相对复杂的数据清洗任务。
+只需要掌握Python的基础语法，就可以完成一些相对复杂的数据清洗任务。
 
 作者: 王可冉
 版本: 2022年4月29日
 """
 
-import os
+import os, sys, re
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -48,7 +48,9 @@ def read_file(filename, columns=None, sheetid=0, sep=','):
         data = data[columns]
     return data
 
-
+def save_file(data, destination, filetype='csv'):
+    if filetype == 'csv':
+        data.to_csv(destination, index=False, encoding='utf-8-sig')
 
 def merge(df1, df2, left_on=None, right_on=None, drop_duplaicates=True):
     # 合并两个表
@@ -76,10 +78,20 @@ def cat2ohe(X, cat):
     return encoder_df
 
 # 含有分隔符的分类数据变哑变量
-def cat2ohe_split(X, cat, delimiter='+'):
-    encoder = OneHotEncoder(handle_unknown='ignore')
-    encoder_df = pd.DataFrame(encoder.fit_transform(X[[cat]]).toarray(), columns=[f'{cat}_{i}' for i in sorted(X[cat].unique())]).astype('int')
-    return encoder_df
+def cat2ohe_split(data_, id_col, val_col, delimiter='+'):
+    data = data_[[id_col, val_col]]
+    columns = []
+    
+    for d in data[val_col].unique(): columns += str(d).split(delimiter)
+    columns = list(set(list(filter(None, columns))))
+    results = pd.DataFrame('', index=data[id_col].unique(), columns=columns).astype(object)
+    for _, row in tqdm(data.iterrows(), total=data.shape[0]):
+        cols = row[1].split(delimiter)
+        cols = list(set(list(filter(None, cols))))
+        for d in cols: results[d][row[0]] = '1'
+    results.index.name = id_col
+    results = results.reset_index()
+    return results
 
 # 基础表
 def base_table_process_helper(results, row, values, num_values, first_index, index_count):
@@ -151,7 +163,48 @@ def remove_negative_cost(data, time_col, cost_col, other_cols):
 def remove_empty_cells(data, col):
     """
         去除数据中在某一列中为空值的所有数据
-        
-    
     """
     return data.query(f'{col} == {col}')
+
+def similariy_prediction(inputs_, corpus_, threshold=0.7):
+    try:
+        from similarities import Similarity
+    except:
+        os.system('pip install similarities')
+        from similarities import Similarity
+        
+    inputs, corpus = inputs_.copy(), corpus_.copy()
+    try:
+        inputs = inputs.tolist()
+        corpus = corpus.tolist()
+    except: pass
+    inputs = [input.split(' ')[0] for input in inputs]
+    def get_most_similar(sentences, corpus, topn):
+        sentences = [re.sub("[\(\[（].*?[\)\]）]", "", s).split(' ')[0] for s in sentences]
+        corpus = corpus
+        model = Similarity(model_name_or_path="shibing624/text2vec-base-chinese")
+        model.add_corpus(corpus)
+        return model.corpus, model.most_similar(queries=sentences, topn=topn)
+        
+    corpus_dict, res = get_most_similar(inputs, corpus, 3)
+    pred_list = []
+    scores = []
+
+    for i, c in tqdm(res.items()):
+        c = {k: v for k, v in sorted(c.items(), key=lambda item: -item[1])}
+        p = []
+        max_s = -1
+        for corpus_id, s in c.items():
+            max_s = max(max_s, s)
+            p.append(corpus_dict[corpus_id])
+
+        pred_list.append(p)
+        scores.append(max_s)
+
+    pred_list = np.array(pred_list)
+    out = pd.DataFrame({'inputs': inputs_, 'predictions': pred_list[:, 0], 'score': np.round(scores, 2)})
+    out = out.sort_values('score', ascending=False)
+    out['predictions'][out['score'] < threshold] = ''
+    out['score'][out['score'] < threshold] = np.nan
+    # out.to_csv('results.csv', index=False, encoding='utf-8-sig')
+    return out
