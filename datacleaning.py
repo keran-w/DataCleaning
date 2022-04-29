@@ -6,7 +6,7 @@
 
 作者: 王可冉
 版本: 2022年4月29日
-"""
+""" 
 
 import os, sys, re
 import numpy as np
@@ -90,7 +90,7 @@ def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: list[str], right_on: li
         
     Examples:
         >>> merge(df1, df2, left_on=['col_1', 'col_2'], right_on=['col_2', 'col_3'], drop_duplicates=False)
-    """    
+    """
     df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
