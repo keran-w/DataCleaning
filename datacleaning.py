@@ -5,7 +5,7 @@
 只需要掌握Python的基础语法，就可以完成一些相对复杂的数据清洗任务。
 
 作者: 王可冉
-版本: 2022年4月29日
+版本: 2022年5月6日
 """ 
 
 import os, sys, re
@@ -50,7 +50,7 @@ def read_file(filename: str, columns=None, sheetid=1, sep=','):
         buffer.seek(0)
         data = pd.read_csv(buffer)
     elif filetype == 'xls':
-        data = pd.read_excel(buffer)
+        data = pd.read_excel(filename)
     elif filetype == 'txt':
         f = open(filename, 'r', encoding='utf-8-sig')
         data = f.read().split(sep)
