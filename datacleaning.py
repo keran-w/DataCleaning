@@ -9,6 +9,7 @@
 """ 
 
 import os, sys, re
+from typing import List
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -26,13 +27,13 @@ def read_file(filename: str, columns=None, sheetid=1, sep=','):
 
     Args:
         filename (str): 读取文件的文件名
-        columns (list[str], optional): 选择表格数据希望保留的列. Defaults to None.
+        columns (List[str], optional): 选择表格数据希望保留的列. Defaults to None.
         sheetid (int, optional): 对于xlsx及xls文件，选择需要读取的表格是该文件的第几个表格. Defaults to 1.
         sep (str, optional): csv及txt文件的分割符. Defaults to ','.
 
     Returns:
         pd.DataFrame: 读取文件的表格数据，如果输入文件的文件名为csv, xlsx或xls
-    或  list[str]: 读取txt文件的字符串列表
+    或  List[str]: 读取txt文件的字符串列表
     
     Examples:
         >>> read_file('data.csv', ['col_1', 'col_2'])
@@ -42,6 +43,7 @@ def read_file(filename: str, columns=None, sheetid=1, sep=','):
 
     filename = filename.replace('\\', '/')
     filetype = filename.split('.')[-1]
+    data = None
     if filetype == 'csv':
         data = pd.read_csv(filename, sep=sep)
     elif filetype == 'xlsx':
@@ -75,14 +77,14 @@ def save_file(data: pd.DataFrame, destination: str, filetype='csv') -> None:
     if filetype == 'csv':
         data.to_csv(destination, index=False, encoding='utf-8-sig')
 
-def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: list[str], right_on: list[str], drop_duplaicates=True) -> pd.DataFrame:
+def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: List[str], drop_duplaicates=True) -> pd.DataFrame:
     """按照指定表头名称合并两个DataFrame
 
     Args:
         df1 (pd.DataFrame): 需要合并的第一个表
         df2 (pd.DataFrame): 需要合并的第二个表
-        left_on (list[str]): 第一个表用来合并的表头名称.
-        right_on (list[str]): 第二个表用来合并的表头名称.
+        left_on (List[str]): 第一个表用来合并的表头名称.
+        right_on (List[str]): 第二个表用来合并的表头名称.
         drop_duplaicates (bool, optional): 是否需要去掉重复的行. Defaults to True.
 
     Returns:
@@ -95,13 +97,13 @@ def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: list[str], right_on: li
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
 
-def sift(data: pd.DataFrame, col_name: str, tgt_list: list[str]) -> pd.DataFrame:
+def sift(data: pd.DataFrame, col_name: str, tgt_list: List[str]) -> pd.DataFrame:
     """筛选一个列中指定信息的行
 
     Args:
         data (pd.DataFrame): 需要被筛选的表
         col_name (str): 被选择列的表头名称
-        tgt_list (list[str]): 筛选指定信息的列表
+        tgt_list (List[str]): 筛选指定信息的列表
 
     Returns:
         pd.DataFrame: 信息筛选后的表
