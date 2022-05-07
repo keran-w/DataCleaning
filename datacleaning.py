@@ -1,19 +1,8 @@
-"""
-常用数据清洗方法整合模块
-
-这个模块将现实应用场景中的一些数据清洗方法做了整合，基于Numpy和Pandas开发，
-只需要掌握Python的基础语法，就可以完成一些相对复杂的数据清洗任务。
-
-作者: 王可冉
-版本: 2022年5月6日
-""" 
-
 import os, sys, re
 from typing import List
 import numpy as np
 import pandas as pd
 from io import StringIO
-from xlsx2csv import Xlsx2csv
 
 from tqdm import tqdm
 from sklearn.preprocessing import OneHotEncoder
@@ -47,6 +36,7 @@ def read_file(filename: str, columns=None, sheetid=1, sep=','):
     if filetype == 'csv':
         data = pd.read_csv(filename, sep=sep)
     elif filetype == 'xlsx':
+        from xlsx2csv import Xlsx2csv
         buffer = StringIO()
         Xlsx2csv(filename, outputencoding='utf-8').convert(buffer, sheetid)
         buffer.seek(0)
