@@ -6,7 +6,6 @@ from matplotlib_inline import backend_inline
 
 from IPython import display
 
-
 def plot_config(chinese=False):
     backend_inline.set_matplotlib_formats('svg')
     sns.set(style="whitegrid")
@@ -15,6 +14,7 @@ def plot_config(chinese=False):
     if chinese:
         plt.rcParams['font.sans-serif'] = ['SimHei']
         sns.set(font='SimHei')
+        sns.set_style({'font.sans-serif':['SimHei', 'Arial']})
 
 
 def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
