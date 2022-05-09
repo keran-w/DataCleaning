@@ -1,5 +1,6 @@
 import os, sys, re
 from typing import List
+import random
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -243,3 +244,31 @@ def similariy_prediction(inputs_, corpus_, threshold=0.7):
     out['score'][out['score'] < threshold] = np.nan
     # out.to_csv('results.csv', index=False, encoding='utf-8-sig')
     return out
+
+
+from sklearn.preprocessing import OneHotEncoder
+def cats2ohe(X, cats):
+    results = pd.DataFrame(index=X.index)
+    for cat in cats:
+        encoder = OneHotEncoder(handle_unknown='ignore')
+        encoder_df = pd.DataFrame(encoder.fit_transform(X[[cat]]).toarray(), columns=[f'{cat}_{i}' for i in sorted(X[cat].unique())]).astype('int')
+        results = pd.concat([results, encoder_df], axis=1)
+    return results
+
+class ddict(dict):
+    """using dot instead of brackets to access dictionary item"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+def seed_everything(seed=20):
+    import torch
+    """set seed for all"""
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
