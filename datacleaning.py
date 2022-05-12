@@ -215,10 +215,10 @@ def similariy_prediction(inputs_, corpus_, threshold=0.7):
         corpus = corpus.tolist()
     except: pass
     inputs = [input.split(' ')[0] for input in inputs]
-    def get_most_similar(sentences, corpus, topn):
+    def get_most_similar(sentences, corpus, topn, model_name_or_path='shibing624/text2vec-base-chinese'):
         sentences = [re.sub("[\(\[（].*?[\)\]）]", "", s).split(' ')[0] for s in sentences]
         corpus = corpus
-        model = Similarity(model_name_or_path="shibing624/text2vec-base-chinese")
+        model = Similarity(model_name_or_path=model_name_or_path)
         model.add_corpus(corpus)
         return model.corpus, model.most_similar(queries=sentences, topn=topn)
         
@@ -244,7 +244,6 @@ def similariy_prediction(inputs_, corpus_, threshold=0.7):
     out['score'][out['score'] < threshold] = np.nan
     # out.to_csv('results.csv', index=False, encoding='utf-8-sig')
     return out
-
 
 from sklearn.preprocessing import OneHotEncoder
 def cats2ohe(X, cats):
