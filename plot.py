@@ -32,11 +32,10 @@ def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
     axes.grid()
 
 
-def plot_correlation(df, chinese=False, fillna=-1, decimal=4):
+def plot_correlation(df, chinese=False, fillna=0, decimal=4):
     plot_config(chinese)
     sns.heatmap(df.corr().fillna(fillna), annot=True, cmap='Blues', fmt=f'.{decimal}g')
     plt.show()
-
 
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
 def plot_roc(y_true, y_score, plot_class=None):
