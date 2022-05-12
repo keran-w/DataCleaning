@@ -37,4 +37,4 @@
 *.xlsx
 
 __pycache__
-examples.ipynb
+test.ipynb
