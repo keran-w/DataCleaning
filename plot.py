@@ -36,7 +36,23 @@ def plot_correlation(df, chinese=False, fillna=0, decimal=4):
     plot_config(chinese)
     sns.heatmap(df.corr().fillna(fillna), annot=True, cmap='Blues', fmt=f'.{decimal}g')
     plt.show()
-
+    
+def exploratory_data_analysis(df, title='', install=False, display=None, output_filename=None):
+    import os
+    if install:
+        os.system('pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
+    from pandas_profiling import ProfileReport
+    try:
+        profile = ProfileReport(df, title=title, html={'style':{'full_width':True}})
+        if display == 'html':
+            profile.to_file(f'{"" if not output_filename else output_filename}_EDA.html')
+        elif display == 'colab':
+            profile.to_notebook_iframe()
+        else:
+            profile
+    except:
+        raise np.ModuleDeprecationWarning('pandas_profiling error, try install=True')
+        
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
 def plot_roc(y_true, y_score, plot_class=None):
     y_true = np.array(y_true).reshape(-1, 1)
