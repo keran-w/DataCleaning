@@ -61,8 +61,6 @@ def exploratory_data_analysis(df, title='', install=False, display=None, output_
             'pandas_profiling error, try set install=True')
 
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
-
-
 def plot_roc(y_true, y_score, plot_class=None):
     y_true = np.array(y_true).reshape(-1, 1)
     n_classes = len(np.unique(y_true))
