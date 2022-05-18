@@ -8,6 +8,7 @@ from sklearn.metrics import roc_curve, auc
 
 from IPython import display
 
+
 def plot_config(chinese=False):
     backend_inline.set_matplotlib_formats('svg')
     sns.set(style="whitegrid")
@@ -16,7 +17,7 @@ def plot_config(chinese=False):
     if chinese:
         plt.rcParams['font.sans-serif'] = ['SimHei']
         sns.set(font='SimHei')
-        sns.set_style({'font.sans-serif':['SimHei', 'Arial']})
+        sns.set_style({'font.sans-serif': ['SimHei', 'Arial']})
 
 
 def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
@@ -34,32 +35,40 @@ def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
 
 def plot_correlation(df, chinese=False, fillna=0, decimal=4):
     plot_config(chinese)
-    sns.heatmap(df.corr().fillna(fillna), annot=True, cmap='Blues', fmt=f'.{decimal}g')
+    sns.heatmap(df.corr().fillna(fillna), annot=True,
+                cmap='Blues', fmt=f'.{decimal}g')
     plt.show()
-    
+
+
 def exploratory_data_analysis(df, title='', install=False, display=None, output_filename=None):
     import os
     if install:
-        os.system('pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
+        os.system(
+            'pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
     from pandas_profiling import ProfileReport
     try:
-        profile = ProfileReport(df, title=title, html={'style':{'full_width':True}})
+        profile = ProfileReport(df, title=title, html={
+                                'style': {'full_width': True}})
         if display == 'html':
-            profile.to_file(f'{"" if not output_filename else output_filename}_EDA.html')
+            profile.to_file(
+                f'{"" if not output_filename else output_filename}_EDA.html')
         elif display == 'colab':
             profile.to_notebook_iframe()
         else:
             profile
     except:
-        raise np.ModuleDeprecationWarning('pandas_profiling error, try install=True')
-        
+        raise np.ModuleDeprecationWarning(
+            'pandas_profiling error, try set install=True')
+
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
+
+
 def plot_roc(y_true, y_score, plot_class=None):
     y_true = np.array(y_true).reshape(-1, 1)
     n_classes = len(np.unique(y_true))
     y_score = np.array(y_score)
     assert n_classes == y_score.shape[1]
-    
+
     # Compute ROC curve and ROC area for each class
     fpr = dict()
     tpr = dict()
@@ -67,11 +76,11 @@ def plot_roc(y_true, y_score, plot_class=None):
     for i in range(n_classes):
         fpr[i], tpr[i], _ = roc_curve(y_true[:, i], y_score[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
-        
+
     # Compute micro-average ROC curve and ROC area
     fpr["micro"], tpr["micro"], _ = roc_curve(y_true.ravel(), y_score.ravel())
     roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
-    
+
     lw = 2
     if plot_class is not None:
         plt.figure()
@@ -111,7 +120,8 @@ def plot_roc(y_true, y_score, plot_class=None):
         plt.plot(
             fpr["micro"],
             tpr["micro"],
-            label="micro-average ROC curve (area = {0:0.2f})".format(roc_auc["micro"]),
+            label="micro-average ROC curve (area = {0:0.2f})".format(
+                roc_auc["micro"]),
             color="deeppink",
             linestyle=":",
             linewidth=4,
@@ -120,7 +130,8 @@ def plot_roc(y_true, y_score, plot_class=None):
         plt.plot(
             fpr["macro"],
             tpr["macro"],
-            label="macro-average ROC curve (area = {0:0.2f})".format(roc_auc["macro"]),
+            label="macro-average ROC curve (area = {0:0.2f})".format(
+                roc_auc["macro"]),
             color="navy",
             linestyle=":",
             linewidth=4,
@@ -133,7 +144,8 @@ def plot_roc(y_true, y_score, plot_class=None):
                 tpr[i],
                 color=color,
                 lw=lw,
-                label="ROC curve of class {0} (area = {1:0.2f})".format(i, roc_auc[i]),
+                label="ROC curve of class {0} (area = {1:0.2f})".format(
+                    i, roc_auc[i]),
             )
 
         plt.plot([0, 1], [0, 1], "k--", lw=lw)
