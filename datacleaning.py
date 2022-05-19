@@ -104,6 +104,15 @@ def sift(data: pd.DataFrame, col_name: str, tgt_list: List[str]) -> pd.DataFrame
     """    
     return data.query(f'{col_name} in @tgt_list')
 
+def extract_unique(df: pd.DataFrame, col: str) -> List[str]:
+    """ 读取DataDFrame中特定列的唯一数据
+       Args:
+           df (pd.DataFrame): 需要进行相似性预测的列
+           col (str): 相似性预测的目标列
+       Returns: List[str] 唯一字符串列表
+    """
+    return df[col].unique().tolist()
+
 def drop_columns(data, cols):
     return data.drop(cols, 1)
 
