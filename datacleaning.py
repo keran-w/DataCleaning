@@ -211,7 +211,23 @@ def remove_empty_cells(data, col):
     """
     return data.query(f'{col} == {col}')
 
-def similariy_prediction(inputs_, corpus_, threshold=0.7):
+def get_cosine_similarities(inputs: List[str], corpus: List[str]):
+    from text2vec import SentenceModel
+    from sklearn.preprocessing import normalize
+    max_seq_length = (max([len(i) for i in inputs] + [len(c) for c in corpus]) // 64 + 1) * 64
+    model = SentenceModel(max_seq_length=max_seq_length)
+    similarities = normalize(model.encode(inputs)) @ normalize(model.encode(corpus)).T
+    return similarities
+
+def similariy_prediction(inputs, corpus, top_n=2, threshold=0.8):
+    sim = get_cosine_similarities(inputs, corpus)
+    res = pd.DataFrame({'输入': inputs})
+    for k in range(top_n):
+        res[f'预测{k+1}'] = [corpus[i] for i in np.argsort(sim, 1)[:, ::-1][:, k]]
+        res[f'预测{k+1}分数'] = [i for i in np.sort(sim, 1)[:, ::-1][:, k]]
+    return res
+
+def similariy_prediction_old(inputs_, corpus_, threshold=0.7):
     try:
         from similarities import Similarity
     except:
