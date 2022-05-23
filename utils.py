@@ -15,17 +15,19 @@ class ddict(dict):
     __delattr__ = dict.__delitem__
 
 
-def seed_everything(seed=20):
+def seed_everything(seed=20, use_torch=True):
     """set seed for all
 
     Args:
         seed (int, optional): seed value. Defaults to 20.
-    """    
-    import torch
+        use_torch (bool, optional): whether pyTorch is in use. Defaults to True.
+    """ 
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
+    if use_torch:
+        import torch
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
