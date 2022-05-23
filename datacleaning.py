@@ -61,7 +61,7 @@ def drop_columns(data: pd.DataFrame, cols: Union[str, List[str]], verbose=False)
     Args:
         data (pd.DataFrame): 将要删除的DataFrame
         cols (Union[str, List[str]]): 将要删除的列名
-        verbose (bool, optional): _description_. Defaults to False.
+        verbose (bool, optional): 是否输出删除信息. Defaults to False.
 
     Returns:
         pd.DataFrame: 删除后的DataFrame
@@ -86,11 +86,11 @@ def cat2ohe(data: pd.DataFrame, cat: str) -> pd.DataFrame:
     """分类数据变哑变量
 
     Args:
-        data (pd.DataFrame): _description_
-        cat (str): _description_
+        data (pd.DataFrame): 输入DataFrame
+        cat (str): 分类数据列的表头名称, 该列将转变为哑变量
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 哑变量DataFrame
     """
     
     from sklearn.preprocessing import OneHotEncoder
@@ -101,14 +101,14 @@ def cat2ohe(data: pd.DataFrame, cat: str) -> pd.DataFrame:
 
 
 def cats2ohe(data: pd.DataFrame, cats: List[str]) -> pd.DataFrame:
-    """_summary_
+    """多个分类数据变哑变量
 
     Args:
-        data (pd.DataFrame): _description_
-        cats (List[str]): _description_
+        data (pd.DataFrame): 输入DataFrame
+        cats (List[str]): 分类数据列的表头名称列表, 该列将转变为哑变量
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 哑变量DataFrame
     """
     
     from sklearn.preprocessing import OneHotEncoder
@@ -125,13 +125,13 @@ def cat2ohe_split(data_: pd.DataFrame, id_col: str, val_col: str, delimiter='+')
     """含有分隔符的分类数据变哑变量
 
     Args:
-        data_ (pd.DataFrame): _description_
-        id_col (str): _description_
-        val_col (str): _description_
-        delimiter (str, optional): _description_. Defaults to '+'.
+        data_ (pd.DataFrame): 输入DataFrame
+        id_col (str): id列的表头名称
+        val_col (str): 分类数据列的表头名称
+        delimiter (str, optional): 分类数据的分隔符. Defaults to '+'.
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 哑变量DataFrame
     """
     
     from tqdm import tqdm
@@ -154,16 +154,16 @@ def cat2ohe_split(data_: pd.DataFrame, id_col: str, val_col: str, delimiter='+')
 
 
 def rank_time(data_: pd.DataFrame, time_col: str, other_cols: List[str], ascending=True) -> pd.DataFrame:
-    """_summary_
+    """将时间排序, 添加一列rank
 
     Args:
-        data_ (pd.DataFrame): _description_
-        time_col (str): _description_
-        other_cols (List[str]): _description_
-        ascending (bool, optional): _description_. Defaults to True.
+        data_ (pd.DataFrame): 输入DataFrame
+        time_col (str): 时间列
+        other_cols (List[str]): 其他所有不变列
+        ascending (bool, optional): 是否升序. Defaults to True.
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 返回含有rank的DataFrame
     """
     
     data = data_.copy()
@@ -176,16 +176,16 @@ def rank_time(data_: pd.DataFrame, time_col: str, other_cols: List[str], ascendi
 
 
 def remove_negative_cost(data: pd.DataFrame, time_col: str, cost_col: str, other_cols: List[str]) -> pd.DataFrame:
-    """_summary_
+    """删除金额为负和金额为负所对应的金额为正的行，以时间临近作为判定对应的标准
 
     Args:
-        data (pd.DataFrame): _description_
-        time_col (str): _description_
-        cost_col (str): _description_
-        other_cols (List[str]): _description_
+        data (pd.DataFrame): 输入DataFrame
+        time_col (str): 时间列的表头名称
+        cost_col (str): 金额列的表头名称
+        other_cols (List[str]): 其他列的表头名称
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 返回删除金额为负和金额为负所对应的金额为正的行的DataFrame
     """
     
     del_list = []
@@ -198,14 +198,14 @@ def remove_negative_cost(data: pd.DataFrame, time_col: str, cost_col: str, other
 
 
 def remove_empty_cells(data: pd.DataFrame, col: str) -> pd.DataFrame:
-    """去除数据中在某一列中为空值的所有数据
+    """去除数据中在指定列中为空值的所有数据
 
     Args:
-        data (pd.DataFrame): _description_
-        col (str): _description_
+        data (pd.DataFrame): 输入DataFrame
+        col (str): 指定列的表头名称
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 返回去除数据中在指定列中为空值的所有数据的DataFrame
     """
     
     return data.query(f'{col} == {col}')
