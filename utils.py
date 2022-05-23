@@ -23,6 +23,7 @@ def seed_everything(seed=20, use_torch=True):
         seed (int, optional): seed value. Defaults to 20.
         use_torch (bool, optional): whether pyTorch is in use. Defaults to True.
     """
+
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
