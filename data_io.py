@@ -19,6 +19,7 @@ def read_file(filename: str, columns=None, sheetid=1, sep=','):
         >>> read_file('data.xlsx', ['col_1', 'col_2', 'col_3'], sheetid=2)
         >>> read_file('sentences.txt', sep='\n')
     """
+    
     filename = filename.replace('\\', '/')
     filetype = filename.split('.')[-1]
     data = None
@@ -55,5 +56,6 @@ def save_file(data: pd.DataFrame, destination: str, filetype='csv') -> None:
         >>> save_file(df1, 'df1.csv')
         >>> save_file(df2, 'df2.csv', filetype='csv')
     """
+    
     if filetype == 'csv':
         data.to_csv(destination, index=False, encoding='utf-8-sig')
