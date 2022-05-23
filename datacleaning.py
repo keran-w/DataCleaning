@@ -1,17 +1,4 @@
-import os, sys, re
-from typing import List
-import random
-import numpy as np
-import pandas as pd
-from io import StringIO
-
-from tqdm import tqdm
-from sklearn.preprocessing import OneHotEncoder
-
-import warnings
-warnings.filterwarnings('ignore')
-
-
+from utils import *
 
 
 def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: List[str], drop_duplaicates=True) -> pd.DataFrame:
@@ -26,13 +13,14 @@ def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: Li
 
     Returns:
         pd.DataFrame: 按照要求合并后的表
-        
+
     Examples:
         >>> merge(df1, df2, left_on=['col_1', 'col_2'], right_on=['col_2', 'col_3'], drop_duplicates=False)
     """
     df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
+
 
 def sift(data: pd.DataFrame, col_name: str, tgt_list: List[str]) -> pd.DataFrame:
     """筛选一个列中指定信息的行
@@ -44,104 +32,153 @@ def sift(data: pd.DataFrame, col_name: str, tgt_list: List[str]) -> pd.DataFrame
 
     Returns:
         pd.DataFrame: 信息筛选后的表
-        
+
     Examples:
         >>> sift(df1, 'col_1', ['A', 'B'])
-    """    
+    """
     return data.query(f'{col_name} in @tgt_list')
 
+
 def extract_unique(df: pd.DataFrame, col: str) -> List[str]:
-    """ 读取DataDFrame中特定列的唯一数据
-       Args:
-           df (pd.DataFrame): 需要进行相似性预测的列
-           col (str): 相似性预测的目标列
-       Returns: List[str] 唯一字符串列表
+    """读取DataDFrame中特定列的唯一数据
+
+    Args:
+        df (pd.DataFrame): 需要进行相似性预测的列
+        col (str): 相似性预测的目标列
+
+    Returns:
+        List[str]: 唯一字符串列表
     """
+
     return df[col].unique().tolist()
 
-def drop_columns(data, cols):
-    return data.drop(cols, 1)
 
-# 分类数据变哑变量
-def cat2ohe(X, cat):
+def drop_columns(data: pd.DataFrame, cols: Union[str, List[str]], verbose=False) -> pd.DataFrame:
+    """从DataFrame中删除一列或多列数据(将只删除存在的列)
+
+    Args:
+        data (pd.DataFrame): 将要删除的DataFrame
+        cols (Union[str, List[str]]): 将要删除的列名
+        verbose (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        pd.DataFrame: 删除后的DataFrame
+    """
+    data_ = data.copy()
+    except_cols = []
+    for col in cols:
+        try:
+            data_ = data_.drop(col, 1)
+        except:
+            except_cols.append(col)
+
+    if verbose:
+        print('Removing columns: {}'.format(
+            ''.join([f'{col} ' if col not in except_cols else '' for col in cols])))
+        print('Cannot remove columns: {}'.format(' '.join(except_cols)))
+    return data_
+
+
+def cat2ohe(data: pd.DataFrame, cat: str) -> pd.DataFrame:
+    """分类数据变哑变量
+
+    Args:
+        data (pd.DataFrame): _description_
+        cat (str): _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
+    from sklearn.preprocessing import OneHotEncoder
     encoder = OneHotEncoder(handle_unknown='ignore')
-    encoder_df = pd.DataFrame(encoder.fit_transform(X[[cat]]).toarray(), columns=[f'{cat}_{i}' for i in sorted(X[cat].unique())]).astype('int')
+    encoder_df = pd.DataFrame(encoder.fit_transform(data[[cat]]).toarray(), columns=[
+                              f'{cat}_{i}' for i in sorted(data[cat].unique())]).astype('int')
     return encoder_df
 
-# 含有分隔符的分类数据变哑变量
-def cat2ohe_split(data_, id_col, val_col, delimiter='+'):
+
+def cats2ohe(data: pd.DataFrame, cats: List[str]) -> pd.DataFrame:
+    """_summary_
+
+    Args:
+        data (pd.DataFrame): _description_
+        cats (List[str]): _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
+    from sklearn.preprocessing import OneHotEncoder
+    results = pd.DataFrame(index=data.index)
+    for cat in cats:
+        encoder = OneHotEncoder(handle_unknown='ignore')
+        encoder_df = pd.DataFrame(encoder.fit_transform(data[[cat]]).toarray(), columns=[
+                                  f'{cat}_{i}' for i in sorted(data[cat].unique())]).astype('int')
+        results = pd.concat([results, encoder_df], axis=1)
+    return results
+
+
+def cat2ohe_split(data_: pd.DataFrame, id_col: str, val_col: str, delimiter='+') -> pd.DataFrame:
+    """含有分隔符的分类数据变哑变量
+
+    Args:
+        data_ (pd.DataFrame): _description_
+        id_col (str): _description_
+        val_col (str): _description_
+        delimiter (str, optional): _description_. Defaults to '+'.
+
+    Returns:
+        pd.DataFrame: _description_
+    """
     data = data_[[id_col, val_col]]
     columns = []
-    
-    for d in data[val_col].unique(): columns += str(d).split(delimiter)
+
+    for d in data[val_col].unique():
+        columns += str(d).split(delimiter)
     columns = list(set(list(filter(None, columns))))
-    results = pd.DataFrame('', index=data[id_col].unique(), columns=columns).astype(object)
+    results = pd.DataFrame(
+        '', index=data[id_col].unique(), columns=columns).astype(object)
     for _, row in tqdm(data.iterrows(), total=data.shape[0]):
         cols = row[1].split(delimiter)
         cols = list(set(list(filter(None, cols))))
-        for d in cols: results[d][row[0]] = '1'
+        for d in cols:
+            results[d][row[0]] = '1'
     results.index.name = id_col
     results = results.reset_index()
     return results
 
-# 基础表
-def base_table_process_helper(results, row, values, num_values, first_index, index_count):
-    i, n, v = row[0], row[1], row[2:]
-    flag = 1
-    try: results[n][i][0]
-    except: flag = 0
-    
-    if flag == 0:
-        results[n][i] = v[0]
-        for j in range(num_values):
-            results[n + f'_{values[j]}'][i] = v[j + 1]
-    else:
-        k = index_count[n + i]
-        results[n][first_index[i] + k] = v[0]
-        for j in range(num_values):
-            results[n + f'_{values[j]}'][first_index[i] + k] = v[j + 1]
-        index_count[n + i] += 1
 
-def base_table_process(data_csv, id, name, key, values):
-    data_csv = data_csv.query(f'{name} == {name}')[[id, name, key] + values].drop_duplicates()
-    data_csv[id] = data_csv[id].astype('string')
-    num_values = len(values)
-    new_indices = []
-    for _, (i, count) in data_csv.groupby([id, name], sort=False).count().max(level=0).max(1).reset_index().iterrows():
-        new_indices += [i] * count
+def rank_time(data_: pd.DataFrame, time_col: str, other_cols: List[str], ascending=True) -> pd.DataFrame:
+    """_summary_
 
-    value_count = len(values) + 1
-    new_columns = data_csv[name].unique().repeat(value_count)
-    for i in range(1, value_count):
-        new_columns[i::value_count] += f'_{values[i - 1]}'
+    Args:
+        data_ (pd.DataFrame): _description_
+        time_col (str): _description_
+        other_cols (List[str]): _description_
+        ascending (bool, optional): _description_. Defaults to True.
 
-    results = pd.DataFrame('', index=new_indices, columns=new_columns).astype(object)
-    first_index = {id:row_num for _, (row_num, id) in pd.DataFrame(results.index).drop_duplicates().reset_index().iterrows()}
-    index_count = {nameid:0 for nameid in (data_csv[name] + data_csv[id]).unique()}
-
-    for _, row in tqdm(data_csv[[id, name, key] + values].iterrows(), total=data_csv.shape[0]):
-        base_table_process_helper(results, row, values, num_values, first_index, index_count)
-
-    return results
-
-def build_base_table(data, id, name, key, values, output_filename):
-    results = base_table_process(data, id, name, key, values)
-    results.index.name = id
-    results = results.reset_index().fillna('')
-    results.to_csv(output_filename, index=False, encoding='utf-8-sig')
-    return results
-
-def rank_time(data_, time_col, other_cols, ascending=True):
-
+    Returns:
+        pd.DataFrame: _description_
+    """
     data = data_.copy()
     data[time_col] = pd.to_datetime(data[time_col])
     all_cols = other_cols + [time_col]
     data = data.sort_values(all_cols)
-    data['rank'] = data[all_cols].groupby(other_cols, sort=False)[time_col].rank(ascending=ascending, method='first')
+    data['rank'] = data[all_cols].groupby(other_cols, sort=False)[
+        time_col].rank(ascending=ascending, method='first')
     return data
 
 
-def remove_negative_cost(data, time_col, cost_col, other_cols):
+def remove_negative_cost(data: pd.DataFrame, time_col: str, cost_col: str, other_cols: List[str]) -> pd.DataFrame:
+    """_summary_
+
+    Args:
+        data (pd.DataFrame): _description_
+        time_col (str): _description_
+        cost_col (str): _description_
+        other_cols (List[str]): _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
     del_list = []
     prev_idx = 0
     for idx, row in data[data.duplicated(other_cols, keep=False)].sort_values(other_cols + [time_col]).iterrows():
@@ -150,118 +187,15 @@ def remove_negative_cost(data, time_col, cost_col, other_cols):
         prev_idx = idx
     return data.drop(del_list)
 
-def remove_empty_cells(data, col):
-    """
-        去除数据中在某一列中为空值的所有数据
-    """
-    return data.query(f'{col} == {col}')
 
-
-
-def similariy_prediction(inputs: List[str], corpus: List[str], top_n=2, threshold=0.8, sort_score=False) -> pd.DataFrame:
-    """预测一个输入字符串的归一化结果
+def remove_empty_cells(data: pd.DataFrame, col: str) -> pd.DataFrame:
+    """去除数据中在某一列中为空值的所有数据
 
     Args:
-        inputs (List[str]): 待归一化的输入字符串列表
-        corpus (List[str]): 匹配归一化结果的语料库
-        top_n (int, optional): 返回归一化分数大于阈值的个数. Defaults to 2.
-        threshold (float, optional): 归一化分数的阈值, 该阈值越大, 则所预测的可信度越高, 范围: 0~1. Defaults to 0.8.
-        sort_score (bool, optional): 是否将最高的归一化分数排序. Defaults to False.
+        data (pd.DataFrame): _description_
+        col (str): _description_
 
     Returns:
-        pd.DataFrame: 返回包含原输入信息、归一化预测和预测分数的DataFrame
-        
-    Examples:
-        >>> inputs = read_file('inputs.txt, sep='\n')
-        >>> corpus = read_file('corpus.txt, sep='\n')
-        >>> sim_results = similariy_prediction(inputs, corpus, top_n=3, threshold=0.75, sort_score=True)
-        >>> save_file(sim_results, 'sim_results.csv')
+        pd.DataFrame: _description_
     """
-    
-    def get_cosine_similarities(inputs: List[str], corpus: List[str]):
-        from text2vec import SentenceModel
-        from sklearn.preprocessing import normalize
-        max_seq_length = (max([len(i) for i in inputs] + [len(c) for c in corpus]) // 64 + 1) * 64
-        model = SentenceModel(max_seq_length=max_seq_length)
-        similarities = normalize(model.encode(inputs)) @ normalize(model.encode(corpus)).T
-        return similarities
-    
-    sim = get_cosine_similarities(inputs, corpus)
-    res = pd.DataFrame({'输入': inputs})
-    for k in range(top_n):
-        res[f'预测{k+1}'] = [corpus[i] if sim[j, i] > threshold else '' for j, i in enumerate(np.argsort(sim, 1)[:, ::-1][:, k])]
-        res[f'预测{k+1}分数'] = [i if i > threshold else 0 for i in np.sort(sim, 1)[:, ::-1][:, k]]
-    if sort_score:
-        return res.sort_values('预测1分数', ascending=False).replace(0, '')
-    else:
-        return res.replace(0, '')
-
-def similariy_prediction_old(inputs_, corpus_, threshold=0.7):
-    try:
-        from similarities import Similarity
-    except:
-        os.system('pip install similarities')
-        from similarities import Similarity
-        
-    inputs, corpus = inputs_.copy(), corpus_.copy()
-    try:
-        inputs = inputs.tolist()
-        corpus = corpus.tolist()
-    except: pass
-    inputs = [input.split(' ')[0] for input in inputs]
-    def get_most_similar(sentences, corpus, topn, model_name_or_path='shibing624/text2vec-base-chinese'):
-        sentences = [re.sub("[\(\[（].*?[\)\]）]", "", s).split(' ')[0] for s in sentences]
-        corpus = corpus
-        model = Similarity(model_name_or_path=model_name_or_path)
-        model.add_corpus(corpus)
-        return model.corpus, model.most_similar(queries=sentences, topn=topn)
-  
-    corpus_dict, res = get_most_similar(inputs, corpus, 3)
-    pred_list = []
-    scores = []
-
-    for i, c in tqdm(res.items()):
-        c = {k: v for k, v in sorted(c.items(), key=lambda item: -item[1])}
-        p = []
-        max_s = -1
-        for corpus_id, s in c.items():
-            max_s = max(max_s, s)
-            p.append(corpus_dict[corpus_id])
-
-        pred_list.append(p)
-        scores.append(max_s)
-
-    pred_list = np.array(pred_list)
-    out = pd.DataFrame({'inputs': inputs_, 'predictions': pred_list[:, 0], 'score': np.round(scores, 2)})
-    out = out.sort_values('score', ascending=False)
-    out['predictions'][out['score'] < threshold] = ''
-    out['score'][out['score'] < threshold] = np.nan
-    # out.to_csv('results.csv', index=False, encoding='utf-8-sig')
-    return out
-
-from sklearn.preprocessing import OneHotEncoder
-def cats2ohe(X, cats):
-    results = pd.DataFrame(index=X.index)
-    for cat in cats:
-        encoder = OneHotEncoder(handle_unknown='ignore')
-        encoder_df = pd.DataFrame(encoder.fit_transform(X[[cat]]).toarray(), columns=[f'{cat}_{i}' for i in sorted(X[cat].unique())]).astype('int')
-        results = pd.concat([results, encoder_df], axis=1)
-    return results
-
-class ddict(dict):
-    """using dot instead of brackets to access dictionary item"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
-
-def seed_everything(seed=20):
-    import torch
-    """set seed for all"""
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
+    return data.query(f'{col} == {col}')
