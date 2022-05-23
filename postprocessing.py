@@ -59,6 +59,7 @@ def base_table_process(data_csv: pd.DataFrame, id: str, name: str, key: str, val
                 results[n + f'_{values[j]}'][first_index[i] + k] = v[j + 1]
             index_count[n + i] += 1
 
+    from tqdm import tqdm
     for _, row in tqdm(data_csv[[id, name, key] + values].iterrows(), total=data_csv.shape[0]):
         base_table_process_helper(
             results, row, values, num_values, first_index, index_count)
