@@ -2,17 +2,17 @@ from utils import *
 
 
 def base_table_process(data_csv: pd.DataFrame, id: str, name: str, key: str, values: Union[str, List[str]]) -> pd.DataFrame:
-    """_summary_
+    """建立基础表
 
     Args:
-        data_csv (pd.DataFrame): _description_
-        id (str): _description_
-        name (str): _description_
-        key (str): _description_
-        values (Union[str, List[str]]): _description_
+        data_csv (pd.DataFrame): 包含所有用来建立基础表信息的DataFrame
+        id (str): 唯一区分每行的id
+        name (str): 基础表基础信息列, 该列的不重复信息将位于每条信息的第一列
+        key (str): 基础表基础信息列的填充值
+        values (Union[str, List[str]]): 基础表其他信息列的表头名
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: 返回建立的基础表
 
     Examples:
         >>> results = base_table_process(data, id, name, key, values)
