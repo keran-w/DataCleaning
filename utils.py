@@ -1,12 +1,9 @@
-import os, sys, re
+import os
+import sys
 import random
 import numpy as np
 import pandas as pd
-from io import StringIO
 from typing import *
-
-from tqdm import tqdm
-from sklearn.preprocessing import OneHotEncoder
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -19,8 +16,12 @@ class ddict(dict):
 
 
 def seed_everything(seed=20):
+    """set seed for all
+
+    Args:
+        seed (int, optional): seed value. Defaults to 20.
+    """    
     import torch
-    """set seed for all"""
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
