@@ -13,16 +13,16 @@ warnings.filterwarnings('ignore')
 
 
 def read_file(filename: str, columns=None, sheetid=1, sep=','):
-    """ 读取多种文件类型的数据，对于列表数据，可以选择部分表头
+    """ 读取多种文件类型的数据, 对于列表数据, 可以选择部分表头
 
     Args:
         filename (str): 读取文件的文件名
         columns (List[str], optional): 选择表格数据希望保留的列. Defaults to None.
-        sheetid (int, optional): 对于xlsx及xls文件，选择需要读取的表格是该文件的第几个表格. Defaults to 1.
+        sheetid (int, optional): 对于xlsx及xls文件, 选择需要读取的表格是该文件的第几个表格. Defaults to 1.
         sep (str, optional): csv及txt文件的分割符. Defaults to ','.
 
     Returns:
-        pd.DataFrame: 读取文件的表格数据，如果输入文件的文件名为csv, xlsx或xls
+        pd.DataFrame: 读取文件的表格数据, 如果输入文件的文件名为csv, xlsx或xls
     或  List[str]: 读取txt文件的字符串列表
     
     Examples:
@@ -196,7 +196,6 @@ def rank_time(data_, time_col, other_cols, ascending=True):
 
 
 def remove_negative_cost(data, time_col, cost_col, other_cols):
-
     del_list = []
     prev_idx = 0
     for idx, row in data[data.duplicated(other_cols, keep=False)].sort_values(other_cols + [time_col]).iterrows():
@@ -211,15 +210,36 @@ def remove_empty_cells(data, col):
     """
     return data.query(f'{col} == {col}')
 
-def get_cosine_similarities(inputs: List[str], corpus: List[str]):
-    from text2vec import SentenceModel
-    from sklearn.preprocessing import normalize
-    max_seq_length = (max([len(i) for i in inputs] + [len(c) for c in corpus]) // 64 + 1) * 64
-    model = SentenceModel(max_seq_length=max_seq_length)
-    similarities = normalize(model.encode(inputs)) @ normalize(model.encode(corpus)).T
-    return similarities
 
-def similariy_prediction(inputs, corpus, top_n=2, threshold=0.8, sort_score=False):
+
+def similariy_prediction(inputs: List[str], corpus: List[str], top_n=2, threshold=0.8, sort_score=False) -> pd.DataFrame:
+    """预测一个输入字符串的归一化结果
+
+    Args:
+        inputs (List[str]): 待归一化的输入字符串列表
+        corpus (List[str]): 匹配归一化结果的语料库
+        top_n (int, optional): 返回归一化分数大于阈值的个数. Defaults to 2.
+        threshold (float, optional): 归一化分数的阈值, 该阈值越大, 则所预测的可信度越高, 范围: 0~1. Defaults to 0.8.
+        sort_score (bool, optional): 是否将最高的归一化分数排序. Defaults to False.
+
+    Returns:
+        pd.DataFrame: 返回包含原输入信息、归一化预测和预测分数的DataFrame
+        
+    Examples:
+        >>> inputs = read_file('inputs.txt, sep='\n')
+        >>> corpus = read_file('corpus.txt, sep='\n')
+        >>> sim_results = similariy_prediction(inputs, corpus, top_n=3, threshold=0.75, sort_score=True)
+        >>> save_file(sim_results, 'sim_results.csv')
+    """
+    
+    def get_cosine_similarities(inputs: List[str], corpus: List[str]):
+        from text2vec import SentenceModel
+        from sklearn.preprocessing import normalize
+        max_seq_length = (max([len(i) for i in inputs] + [len(c) for c in corpus]) // 64 + 1) * 64
+        model = SentenceModel(max_seq_length=max_seq_length)
+        similarities = normalize(model.encode(inputs)) @ normalize(model.encode(corpus)).T
+        return similarities
+    
     sim = get_cosine_similarities(inputs, corpus)
     res = pd.DataFrame({'输入': inputs})
     for k in range(top_n):
@@ -249,7 +269,7 @@ def similariy_prediction_old(inputs_, corpus_, threshold=0.7):
         model = Similarity(model_name_or_path=model_name_or_path)
         model.add_corpus(corpus)
         return model.corpus, model.most_similar(queries=sentences, topn=topn)
-        
+  
     corpus_dict, res = get_most_similar(inputs, corpus, 3)
     pred_list = []
     scores = []
