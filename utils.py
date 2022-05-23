@@ -8,6 +8,7 @@ from typing import *
 import warnings
 warnings.filterwarnings('ignore')
 
+
 class ddict(dict):
     """using dot instead of brackets to access dictionary item"""
     __getattr__ = dict.get
@@ -21,7 +22,7 @@ def seed_everything(seed=20, use_torch=True):
     Args:
         seed (int, optional): seed value. Defaults to 20.
         use_torch (bool, optional): whether pyTorch is in use. Defaults to True.
-    """ 
+    """
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)

@@ -43,7 +43,8 @@ def plot_correlation(df, chinese=False, fillna=0, decimal=4):
 def exploratory_data_analysis(df, title='', install=False, display=None, output_filename=None):
     import os
     if install:
-        os.system('pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
+        os.system(
+            'pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
     from pandas_profiling import ProfileReport
     try:
         profile = ProfileReport(df, title=title, html={
@@ -60,6 +61,8 @@ def exploratory_data_analysis(df, title='', install=False, display=None, output_
             'pandas_profiling error, try set install=True')
 
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
+
+
 def plot_roc(y_true, y_score, plot_class=None):
     y_true = np.array(y_true).reshape(-1, 1)
     n_classes = len(np.unique(y_true))
