@@ -20,6 +20,7 @@ def base_table_process(data_csv: pd.DataFrame, id: str, name: str, key: str, val
         >>> results = results.reset_index().fillna('')
         >>> results.to_csv(output_filename, index=False, encoding='utf-8-sig')
     """
+
     data_csv = data_csv.query(f'{name} == {name}')[
         [id, name, key] + values].drop_duplicates()
     data_csv[id] = data_csv[id].astype('string')
