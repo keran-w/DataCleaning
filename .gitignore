@@ -36,5 +36,7 @@
 *.xls
 *.xlsx
 
+
 __pycache__
+datasets
 test.ipynb
