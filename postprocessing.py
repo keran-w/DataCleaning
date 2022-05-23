@@ -35,8 +35,8 @@ def base_table_process(data_csv: pd.DataFrame, id: str, name: str, key: str, val
 
     results = pd.DataFrame('', index=new_indices,
                            columns=new_columns).astype(object)
-    first_index = {id: row_num for _, (row_num, id) in pd.DataFrame(
-        results.index).drop_duplicates().reset_index().iterrows()}
+    first_index = {id: row_num for _, (row_num, id) in
+                   pd.DataFrame(results.index).drop_duplicates().reset_index().iterrows()}
     index_count = {nameid: 0 for nameid in (
         data_csv[name] + data_csv[id]).unique()}
 
@@ -90,20 +90,20 @@ def similariy_prediction(inputs: List[str], corpus: List[str], top_n=2, threshol
     def get_cosine_similarities(inputs: List[str], corpus: List[str]):
         from text2vec import SentenceModel
         from sklearn.preprocessing import normalize
-        max_seq_length = (max([len(i) for i in inputs] + [len(c)
-                          for c in corpus]) // 64 + 1) * 64
+        max_seq_length = (max([len(i) for i in inputs] +
+                              [len(c)for c in corpus]) // 64 + 1) * 64
         model = SentenceModel(max_seq_length=max_seq_length)
-        similarities = normalize(model.encode(
-            inputs)) @ normalize(model.encode(corpus)).T
+        similarities = normalize(model.encode(inputs)) \
+            @ normalize(model.encode(corpus)).T
         return similarities
 
     sim = get_cosine_similarities(inputs, corpus)
     res = pd.DataFrame({'输入': inputs})
     for k in range(top_n):
-        res[f'预测{k+1}'] = [corpus[i] if sim[j, i] > threshold else '' for j,
-                           i in enumerate(np.argsort(sim, 1)[:, ::-1][:, k])]
-        res[f'预测{k+1}分数'] = [i if i >
-                             threshold else 0 for i in np.sort(sim, 1)[:, ::-1][:, k]]
+        res[f'预测{k+1}'] = [corpus[i] if sim[j, i] > threshold else ''
+                           for j, i in enumerate(np.argsort(sim, 1)[:, ::-1][:, k])]
+        res[f'预测{k+1}分数'] = [i if i > threshold else 0
+                             for i in np.sort(sim, 1)[:, ::-1][:, k]]
     if sort_score:
         return res.sort_values('预测1分数', ascending=False).replace(0, '')
     else:
