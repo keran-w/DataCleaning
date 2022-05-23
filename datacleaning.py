@@ -219,13 +219,16 @@ def get_cosine_similarities(inputs: List[str], corpus: List[str]):
     similarities = normalize(model.encode(inputs)) @ normalize(model.encode(corpus)).T
     return similarities
 
-def similariy_prediction(inputs, corpus, top_n=2, threshold=0.8):
+def similariy_prediction(inputs, corpus, top_n=2, threshold=0.8, sort_score=False):
     sim = get_cosine_similarities(inputs, corpus)
     res = pd.DataFrame({'输入': inputs})
     for k in range(top_n):
-        res[f'预测{k+1}'] = [corpus[i] for i in np.argsort(sim, 1)[:, ::-1][:, k]]
-        res[f'预测{k+1}分数'] = [i for i in np.sort(sim, 1)[:, ::-1][:, k]]
-    return res
+        res[f'预测{k+1}'] = [corpus[i] if sim[j, i] > threshold else '' for j, i in enumerate(np.argsort(sim, 1)[:, ::-1][:, k])]
+        res[f'预测{k+1}分数'] = [i if i > threshold else 0 for i in np.sort(sim, 1)[:, ::-1][:, k]]
+    if sort_score:
+        return res.sort_values('预测1分数', ascending=False).replace(0, '')
+    else:
+        return res.replace(0, '')
 
 def similariy_prediction_old(inputs_, corpus_, threshold=0.7):
     try:
