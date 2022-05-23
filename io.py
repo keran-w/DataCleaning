@@ -1,8 +1,4 @@
-
-
-
-
-
+from utils import *
 def read_file(filename: str, columns=None, sheetid=1, sep=','):
     """ 读取多种文件类型的数据, 对于列表数据, 可以选择部分表头
 
