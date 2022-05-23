@@ -17,7 +17,7 @@ def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: Li
     Examples:
         >>> merge(df1, df2, left_on=['col_1', 'col_2'], right_on=['col_2', 'col_3'], drop_duplicates=False)
     """
-    
+
     df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
@@ -37,7 +37,7 @@ def sift(data: pd.DataFrame, col_name: str, tgt_list: List[str]) -> pd.DataFrame
     Examples:
         >>> sift(df1, 'col_1', ['A', 'B'])
     """
-    
+
     return data.query(f'{col_name} in @tgt_list')
 
 
@@ -66,7 +66,7 @@ def drop_columns(data: pd.DataFrame, cols: Union[str, List[str]], verbose=False)
     Returns:
         pd.DataFrame: 删除后的DataFrame
     """
-    
+
     data_ = data.copy()
     except_cols = []
     for col in cols:
@@ -92,7 +92,7 @@ def cat2ohe(data: pd.DataFrame, cat: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: 哑变量DataFrame
     """
-    
+
     from sklearn.preprocessing import OneHotEncoder
     encoder = OneHotEncoder(handle_unknown='ignore')
     encoder_df = pd.DataFrame(encoder.fit_transform(data[[cat]]).toarray(), columns=[
@@ -110,7 +110,7 @@ def cats2ohe(data: pd.DataFrame, cats: List[str]) -> pd.DataFrame:
     Returns:
         pd.DataFrame: 哑变量DataFrame
     """
-    
+
     from sklearn.preprocessing import OneHotEncoder
     results = pd.DataFrame(index=data.index)
     for cat in cats:
@@ -133,7 +133,7 @@ def cat2ohe_split(data_: pd.DataFrame, id_col: str, val_col: str, delimiter='+')
     Returns:
         pd.DataFrame: 哑变量DataFrame
     """
-    
+
     from tqdm import tqdm
     data = data_[[id_col, val_col]]
     columns = []
@@ -165,7 +165,7 @@ def rank_time(data_: pd.DataFrame, time_col: str, other_cols: List[str], ascendi
     Returns:
         pd.DataFrame: 返回含有rank的DataFrame
     """
-    
+
     data = data_.copy()
     data[time_col] = pd.to_datetime(data[time_col])
     all_cols = other_cols + [time_col]
@@ -187,7 +187,7 @@ def remove_negative_cost(data: pd.DataFrame, time_col: str, cost_col: str, other
     Returns:
         pd.DataFrame: 返回删除金额为负和金额为负所对应的金额为正的行的DataFrame
     """
-    
+
     del_list = []
     prev_idx = 0
     for idx, row in data[data.duplicated(other_cols, keep=False)].sort_values(other_cols + [time_col]).iterrows():
@@ -207,5 +207,5 @@ def remove_empty_cells(data: pd.DataFrame, col: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: 返回去除数据中在指定列中为空值的所有数据的DataFrame
     """
-    
+
     return data.query(f'{col} == {col}')
