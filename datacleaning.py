@@ -128,6 +128,7 @@ def cat2ohe_split(data_: pd.DataFrame, id_col: str, val_col: str, delimiter='+')
     Returns:
         pd.DataFrame: _description_
     """
+    from tqdm import tqdm
     data = data_[[id_col, val_col]]
     columns = []
 
