@@ -69,6 +69,9 @@ def drop_columns(data: pd.DataFrame, cols: Union[str, List[str]], verbose=False)
 
     data_ = data.copy()
     except_cols = []
+    if isinstance(cols, str):
+        cols = [cols]
+    
     for col in cols:
         try:
             data_ = data_.drop(col, 1)
