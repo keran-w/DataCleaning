@@ -17,7 +17,7 @@ def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: Li
     Examples:
         >>> merge(df1, df2, left_on=['col_1', 'col_2'], right_on=['col_2', 'col_3'], drop_duplicates=False)
     """
-    
+
     df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
@@ -37,7 +37,7 @@ def sift(data: pd.DataFrame, col_name: str, tgt_list: List[str]) -> pd.DataFrame
     Examples:
         >>> sift(df1, 'col_1', ['A', 'B'])
     """
-    
+
     return data.query(f'{col_name} in @tgt_list')
 
 
@@ -66,7 +66,7 @@ def drop_columns(data: pd.DataFrame, cols: Union[str, List[str]], verbose=False)
     Returns:
         pd.DataFrame: 删除后的DataFrame
     """
-    
+
     data_ = data.copy()
     except_cols = []
     for col in cols:
@@ -92,7 +92,7 @@ def cat2ohe(data: pd.DataFrame, cat: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: _description_
     """
-    
+
     from sklearn.preprocessing import OneHotEncoder
     encoder = OneHotEncoder(handle_unknown='ignore')
     encoder_df = pd.DataFrame(encoder.fit_transform(data[[cat]]).toarray(), columns=[
@@ -110,7 +110,7 @@ def cats2ohe(data: pd.DataFrame, cats: List[str]) -> pd.DataFrame:
     Returns:
         pd.DataFrame: _description_
     """
-    
+
     from sklearn.preprocessing import OneHotEncoder
     results = pd.DataFrame(index=data.index)
     for cat in cats:
@@ -133,7 +133,7 @@ def cat2ohe_split(data_: pd.DataFrame, id_col: str, val_col: str, delimiter='+')
     Returns:
         pd.DataFrame: _description_
     """
-    
+
     from tqdm import tqdm
     data = data_[[id_col, val_col]]
     columns = []
@@ -165,7 +165,7 @@ def rank_time(data_: pd.DataFrame, time_col: str, other_cols: List[str], ascendi
     Returns:
         pd.DataFrame: _description_
     """
-    
+
     data = data_.copy()
     data[time_col] = pd.to_datetime(data[time_col])
     all_cols = other_cols + [time_col]
@@ -187,7 +187,7 @@ def remove_negative_cost(data: pd.DataFrame, time_col: str, cost_col: str, other
     Returns:
         pd.DataFrame: _description_
     """
-    
+
     del_list = []
     prev_idx = 0
     for idx, row in data[data.duplicated(other_cols, keep=False)].sort_values(other_cols + [time_col]).iterrows():
@@ -207,5 +207,35 @@ def remove_empty_cells(data: pd.DataFrame, col: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: _description_
     """
-    
+
     return data.query(f'{col} == {col}')
+
+
+def compute_cost(data_: pd.DataFrame, cat_info: dict, id_col: str, cat_col: str, cost_col: str) -> pd.DataFrame:
+    """计算不同大类的总费用
+
+        Args:
+            data_ (pd.DataFrame): 输入DataFrame
+            cat_info (dict): 费用名称分类字典 
+                e.g. {'费用大类1'：'原始小类1|原始小类2', '费用大类2'：'原始小类3|原始小类4|原始小类5'}
+            id_col (str): ID列表头名称
+            cat_col (str): 费用类别表头名称
+            cost_col (str)：金额列表头名称
+
+        Returns:
+            pd.DataFrame: ID列 + 大类费用和的DataFrame
+
+        Examples:
+            >>> cat_info = {
+                    '费用1': '费用1项目1|费用1项目2',
+                    '费用2': '费用2项目1|费用2项目2|费用2项目3|费用2项目4',
+                }
+            >>> compute_cost(df, cat_info, 'ID', 'Type', 'Cost')
+        """
+
+    data = data_.copy()
+    data[cat_col].replace(list(cat_info.values()), list(cat_info.keys()), regex=True, inplace=True)
+    results = pd.DataFrame(0., index=data[id_col].unique(), columns=cat_info.keys()).rename_axis(index=id_col)
+    for _, (id, cat, cost) in data.groupby([id_col, cat_col], sort=False).sum(cost_col)[[cost_col]].reset_index().iterrows():
+        results[cat][id] = cost
+    return results.reset_index()
