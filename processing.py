@@ -109,3 +109,77 @@ def similariy_prediction(inputs: List[str], corpus: List[str], top_n=2, threshol
         return res.sort_values('预测1分数', ascending=False).replace(0, '')
     else:
         return res.replace(0, '')
+
+
+def extract_dose_and_unit_from_text(inputs_: List[str],
+                                    units: List[str],
+                                    il_units: List[str] = [],
+                                    replace_dict: Dict[str, str] = {},
+                                    ENC:str='A'):
+    
+    import re
+    import jieba
+    from itertools import chain
+    from pypinyin import lazy_pinyin as pinyin
+    import pandas as pd
+    import numpy as np
+
+    inputs = [' '.join(item.split()).lower() for item in inputs_]
+    replace_dict['.'] = ENC
+
+    def replace_by_dict(s):
+        for k, v in replace_dict.items():
+            s = s.replace(k, v)
+        return s
+
+    inputs = [replace_by_dict(item) for item in inputs]
+
+    encoding_dict = {}
+    for unit in units + il_units:
+        unit_encoding = ''.join(list(chain.from_iterable(pinyin(unit))))[:4]
+        encoding_dict[unit_encoding] = unit
+        inputs = [re.sub(f'{unit}| {unit}', unit_encoding + ' ', item)
+                  for item in inputs]
+    inputs = [' '.join(item.split()) for item in inputs]
+    outputs = [jieba.lcut(item, cut_all=False) for item in inputs]
+
+    def get_unit(item, return_unit=True):
+        flag = ENC in item
+        item_ = item.replace(ENC, '')
+        match = re.match(r"([0-9]+)([a-z]+)", item_, re.I)
+        if match:
+            if return_unit:
+                return match.groups()[-1]
+            else:
+                if flag:
+                    return item[:-len(match.groups()[-1])].replace(ENC, '.'), match.groups()[-1]
+                else:
+                    return match.groups()
+        else:
+            if return_unit:
+                return ''
+            else:
+                return ('', '')
+
+    def filter_item(item):
+        res = list(filter(lambda x: x != '', item))
+        try:
+            return res[0]
+        except:
+            return ''
+
+    outputs = [[item if get_unit(item) in list(
+        encoding_dict.keys()) else '' for item in items] for items in outputs]
+    outputs = [filter_item(item) for item in outputs]
+    outputs = [get_unit(item, return_unit=False) for item in outputs]
+    outputs = np.array(outputs)
+
+    res = pd.DataFrame({'inputs': inputs_})
+    res['outputs'] = outputs[:, 0]
+    res['unit'] = outputs[:, 1]
+    encoding_dict[''] = ''
+    res['outputs'] = res['outputs']
+    res['unit'] = res['unit'].apply(lambda x: encoding_dict[x])
+    res['unit'] = res['unit'].apply(lambda x: '' if x in il_units else x)
+    res['outputs'] = res['outputs'].apply(lambda x: x.replace(ENC, '.'))
+    return res
