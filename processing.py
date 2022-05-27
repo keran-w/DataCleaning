@@ -112,13 +112,24 @@ def similariy_prediction(inputs: List[str], corpus: List[str], top_n=2, threshol
 
 
 def extract_dose_and_unit_from_text(
-        inputs_: List[str],
-        units: List[str],
-        il_units: List[str] = [],
-        replace_dict: Dict[str, str] = {},
-        ENC: str = 'A'
-    ):
+    inputs_: List[str],
+    units: List[str],
+    il_units: List[str] = [],
+    replace_dict: Dict[str, str] = {},
+    ENC: str = 'A'
+):
+    """_summary_
 
+    Args:
+        inputs_ (List[str]): _description_
+        units (List[str]): _description_
+        il_units (List[str], optional): _description_. Defaults to [].
+        replace_dict (Dict[str, str], optional): _description_. Defaults to {}.
+        ENC (str, optional): _description_. Defaults to 'A'.
+
+    Returns:
+        _type_: _description_
+    """
     import re
     import jieba
     from itertools import chain
