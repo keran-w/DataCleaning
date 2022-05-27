@@ -1,7 +1,20 @@
 from utils import *
 
 
-def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: List[str], drop_duplaicates=True) -> pd.DataFrame:
+def remove_content_in_brackets(s: str, replace: str = None) -> str:
+    """去除字符串中括号内的内容
+    Args:
+        s (str): _description_
+        replace (str, optional): 额外需要替换的字符, 不用间隔. Defaults to None.
+
+    Returns:
+        str: _description_
+    """
+    import re
+    return re.sub("[\(\[（].*?[\)\]）]", "", s)
+
+
+def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str] = None, right_on: List[str] = None, drop_duplaicates=True) -> pd.DataFrame:
     """按照指定表头名称合并两个DataFrame
 
     Args:
@@ -18,7 +31,10 @@ def merge(df1: pd.DataFrame, df2: pd.DataFrame, left_on: List[str], right_on: Li
         >>> merge(df1, df2, left_on=['col_1', 'col_2'], right_on=['col_2', 'col_3'], drop_duplicates=False)
     """
 
-    df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
+    if None in (left_on, right_on):
+        df_merge = df1.merge(df2, 'left')
+    else:
+        df_merge = df1.merge(df2, 'left', left_on=left_on, right_on=right_on)
     df_merge.drop_duplicates(inplace=drop_duplaicates)
     return df_merge
 
