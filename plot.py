@@ -43,8 +43,7 @@ def plot_correlation(df, chinese=False, fillna=0, decimal=4):
 def exploratory_data_analysis(df, title='', install=False, display=None, output_filename=None):
     import os
     if install:
-        os.system(
-            'pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
+        os.system('pip install https://github.com/pandas-profiling/pandas-profiling/archive/master.zip')
     from pandas_profiling import ProfileReport
     try:
         profile = ProfileReport(df, title=title, html={
