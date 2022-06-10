@@ -230,16 +230,17 @@ def remove_empty_cells(data: pd.DataFrame, col: str) -> pd.DataFrame:
     return data.query(f'{col} == {col}')
 
 
-def compute_cost(data_: pd.DataFrame, cat_info: dict, id_col: str, cat_col: str, cost_col: str) -> pd.DataFrame:
+def compute_cost(data_: pd.DataFrame, cat_info: dict, id_col: str, cat_col: str, cost_col: str, delimiter='|') -> pd.DataFrame:
     """计算不同大类的总费用
 
         Args:
             data_ (pd.DataFrame): 输入DataFrame
             cat_info (dict): 费用名称分类字典 
-                e.g. {'费用大类1'：'原始小类1|原始小类2', '费用大类2'：'原始小类3|原始小类4|原始小类5'}
+                e.g. {'费用大类1': '原始小类1|原始小类2', '费用大类2': '原始小类3|原始小类4|原始小类5'}
             id_col (str): ID列表头名称
             cat_col (str): 费用类别表头名称
             cost_col (str)：金额列表头名称
+            delimiter (str): 费用名称分隔符，默认为'|'
 
         Returns:
             pd.DataFrame: ID列 + 大类费用和的DataFrame
@@ -253,7 +254,11 @@ def compute_cost(data_: pd.DataFrame, cat_info: dict, id_col: str, cat_col: str,
         """
 
     data = data_.copy()
-    data[cat_col].replace(list(cat_info.values()), list(cat_info.keys()), regex=True, inplace=True)
+    # data[cat_col].replace(list(cat_info.values()), list(cat_info.keys()), regex=True, inplace=True)
+    for k, v in cat_info.items():
+        for i in v.split(delimiter):
+            data[cat_col].replace(i, k, inplace=True)
+
     results = pd.DataFrame(0., index=data[id_col].unique(), columns=cat_info.keys()).rename_axis(index=id_col)
     for _, (id, cat, cost) in data.groupby([id_col, cat_col], sort=False).sum(cost_col)[[cost_col]].reset_index().iterrows():
         results[cat][id] = cost
